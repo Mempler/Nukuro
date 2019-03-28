@@ -1,5 +1,3 @@
-#include <utility>
-
 /*
 Copyright (c) 2019 Robin A. P.
 
@@ -14,19 +12,14 @@ The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 */
 
-#include <game.h>
+#ifndef NUKORO_TEXTURE2D_H
+#define NUKORO_TEXTURE2D_H
 
-void Game::gRun(int width, int height, std::string title) {
-    this->GameWindow = std::unique_ptr<Window>(new Window(width, height, std::move(title)));
 
-    this->GameWindow->BeginLoop(this, RealUpdate, RealRender);
-}
+class Texture2D {
+public:
+private:
+};
 
-void Game::RealUpdate(Game* game) {
-    game->Update();
-}
 
-void Game::RealRender(Game* game) {
-    game->Render();
-}
-
+#endif //NUKORO_TEXTURE2D_H

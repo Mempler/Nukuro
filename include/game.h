@@ -30,7 +30,7 @@ protected:
     std::unique_ptr<Window> GameWindow { nullptr };
 private:
 
-    static void RealUpdate(Game* game, SDL_Event* event);
+    static void RealUpdate(Game* game);
     static void RealRender(Game* game);
 };
 

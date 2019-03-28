@@ -16,57 +16,51 @@ copies or substantial portions of the Software.
 
 #include <iostream>
 
-#include <GL/glew.h>
-
-Window::Window(int width, int height, std::string title) {
-    SDL_Init(SDL_INIT_VIDEO);
-
-    SDL_Window* window = SDL_CreateWindow(
-            title.c_str(),
-            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-            width, height,
-            SDL_WINDOW_OPENGL);
-
-    this->_SDLWindow = std::unique_ptr<SDL_Window, void(*)(SDL_Window*)>(window, SDL_DestroyWindow);
-
-    SDL_GL_SetAttribute (SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute (SDL_GL_CONTEXT_MINOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-    _context = SDL_GL_CreateContext(this->_SDLWindow.get());
-
-    glewInit();
+static void handle_error(int error, const char* description)
+{
+    if (error == 65537) return; // The GLFW library is not initialized
+    std::cerr << "Error Id: " << error << " Error: " << description << std::endl;
 }
 
-void Window::BeginLoop(Game* game, void (*UpdateEvent)(Game*, SDL_Event*), void (*RenderEvent)(Game*)) {
-    const int timePerFrame = static_cast<const int>(pow(2, 4));
-    unsigned int lastTime = 0, currentTime = 0, delta = 0;
-    SDL_Event event;
+Window::Window(int width, int height, const std::string& title) {
+    glfwSetErrorCallback(handle_error);
 
-    while(!this->_should_close) {
-        delta = lastTime - currentTime;
+    if (!glfwInit())
+        return;
 
-        if (delta < timePerFrame) {
-            SDL_Delay(timePerFrame - delta);
-        }
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-        while (SDL_PollEvent(&event)) {
-            UpdateEvent(game, &event);
-        }
-
-        glClear(GL_COLOR_BUFFER_BIT);
-        RenderEvent(game);
-        SDL_GL_SwapWindow(this->_SDLWindow.get());
-
-        currentTime = lastTime;
-        lastTime = SDL_GetTicks();
+    GLFWwindow* window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+    if (!window)
+    {
+        glfwTerminate();
+        return;
     }
 
-    SDL_GL_DeleteContext(this->_context);
-    SDL_DestroyWindow(this->_SDLWindow.get());
+    glfwMakeContextCurrent(window);
+    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+    glfwSwapInterval(1);
+
+    this->_GLFWwindow = std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)>(window, glfwDestroyWindow);
+}
+
+Window::~Window() {
+    glfwTerminate();
+}
+
+void Window::BeginLoop(Game* game, void (*UpdateEvent)(Game*), void (*RenderEvent)(Game*)) {
+    while(!glfwWindowShouldClose(this->_GLFWwindow.get()) && !this->_should_close) {
+        glClear(GL_COLOR_BUFFER_BIT);
+        UpdateEvent(game);
+        RenderEvent(game);
+
+        glfwSwapBuffers(this->_GLFWwindow.get());
+        glfwPollEvents();
+    }
 }
 
 void Window::Close() {
     this->_should_close = true;
 }
+

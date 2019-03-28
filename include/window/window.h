@@ -15,21 +15,23 @@ copies or substantial portions of the Software.
 #ifndef NUKORO_WINDOW_H
 #define NUKORO_WINDOW_H
 
-#include <SDL2/SDL.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <memory>
 
 class Game;
 
 class Window {
 public:
-    explicit Window(int width, int height, std::string title);
+    explicit Window(int width, int height, const std::string& title);
+    ~Window();
 
-    void BeginLoop(Game* game, void(*UpdateEvent)(Game*, SDL_Event*), void(*RenderEvent)(Game*));
+    void BeginLoop(Game* game, void(*UpdateEvent)(Game*), void(*RenderEvent)(Game*));
     void Close();
 private:
-    SDL_GLContext _context;
-    std::unique_ptr<SDL_Window, void(*)(SDL_Window*)> _SDLWindow { nullptr, nullptr };
-    bool _should_close;
+    //SDL_GLContext _context;
+    std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)> _GLFWwindow { nullptr, nullptr };
+    bool _should_close = false;
 };
 
 #endif //NUKORO_WINDOW_H
